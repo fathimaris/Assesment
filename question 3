@@ -1,0 +1,37 @@
+from django.db import transaction
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+from django.db import connection
+
+# Signal handler for post_save
+@receiver(post_save, sender=User)
+def signal_handler(sender, instance, **kwargs):
+    print("Signal handler called.")
+    # Make some changes in the signal handler
+    instance.first_name = "Handled"
+    instance.save()
+    print(f"Signal handler updated user {instance.username} with first name {instance.first_name}")
+
+# Function that triggers the post_save signal and simulates a transaction rollback
+def create_user_with_transaction():
+    try:
+        with transaction.atomic():
+            print("Starting user creation in transaction.")
+            user = User.objects.create(username="test_user")
+            print(f"User created with username: {user.username}")
+            # Simulate an exception that causes a rollback
+            raise Exception("Simulating an error to rollback the transaction")
+    except Exception as e:
+        print(f"Exception caught: {e}")
+
+# Function to check if the user was committed to the database
+def check_user_exists():
+    return User.objects.filter(username="test_user").exists()
+
+if __name__ == "__main__":
+    create_user_with_transaction()
+
+    # Check if the user was saved or the transaction was rolled back
+    user_exists = check_user_exists()
+    print(f"Does the user exist after the transaction? {user_exists}")
