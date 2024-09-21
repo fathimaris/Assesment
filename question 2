@@ -1,0 +1,25 @@
+import threading
+import time
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+
+# Signal handler for post_save
+@receiver(post_save, sender=User)
+def signal_handler(sender, instance, **kwargs):
+    print("Signal handler thread ID:", threading.get_ident())
+    print("Signal handler received.")
+    time.sleep(1)  # Simulate some delay
+
+# Function that triggers the post_save signal
+def create_user():
+    print("Caller thread ID:", threading.get_ident())
+    print("Starting user creation process.")
+    user = User.objects.create(username="test_user")
+    print("User created.")
+
+# In this example, when `create_user` is called, it creates a user and triggers
+# the `post_save` signal, which will call the `signal_handler`.
+
+if __name__ == "__main__":
+    create_user()
