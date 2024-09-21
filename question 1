@@ -1,0 +1,28 @@
+import time
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+
+# Signal handler for post_save
+@receiver(post_save, sender=User)
+def signal_handler(sender, instance, **kwargs):
+    print("Signal received.")
+    print("Signal handler start time:", time.time())
+    # Simulate some processing delay in the signal handler
+    time.sleep(2)
+    print("Signal handler end time:", time.time())
+
+# Somewhere in your view or model logic
+def create_user():
+    print("Starting user creation process.")
+    start_time = time.time()
+    user = User.objects.create(username="test_user")
+    print("User created at:", time.time())
+    print("Total time taken:", time.time() - start_time)
+
+# In this example, the `create_user` function is called and a user is created.
+# The `post_save` signal is triggered after the user is saved, which will
+# call the `signal_handler`.
+
+if __name__ == "__main__":
+    create_user()
